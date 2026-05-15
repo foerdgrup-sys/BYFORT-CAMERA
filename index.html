@@ -3,282 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BYFORT 6080K DIAMOND</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>BYFORT PRO - Neon Core</title>
     <style>
-        :root {
-            --safe-top: env(safe-area-inset-top);
-            --safe-bottom: env(safe-area-inset-bottom);
+        /* --- RESET & LAYOUT LOCK --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
         }
 
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background-color: #000;
-            font-family: 'Inter', sans-serif;
+        html, body {
+            width: 100% !important;
+            height: 100% !important;
+            overflow: hidden !important;
+            background-color: #020617;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
         }
 
-        .app-container {
-            position: relative; width: 100%; height: 100vh;
-            display: flex; flex-direction: column;
-            padding-top: var(--safe-top); padding-bottom: var(--safe-bottom);
+        /* --- PURE MINIMALIST LOADING SCREEN --- */
+        #byfort-splash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #07152e 0%, #01040a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        #camera-view {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover; z-index: 1;
-        }
-        
-        /* Efek Mirroring untuk Kamera Depan (Kepala kanan -> Layar Kiri) */
-        .mirror-mode { transform: scaleX(-1); }
-
-        .ai-diamond-ultra {
-            filter: brightness(1.3) contrast(1.1) saturate(1.2) sharpness(1.5);
+        /* Elemen Centering Tanpa Kotak / Tanpa Border */
+        .loader-pure-wrapper {
+            width: 480px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .overlay { position: relative; z-index: 10; height: 100%; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
-        .overlay * { pointer-events: auto; }
-
-        #notif {
-            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            background: #fff; color: #000; padding: 15px 35px; border-radius: 50px;
-            font-weight: 900; box-shadow: 0 30px 60px rgba(0,0,0,0.7);
-            z-index: 2000; transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; align-items: center; gap: 12px; font-size: 13px;
+        /* Efek Teks BYFORT Mengkilap & Keren (Biru Tua Cerah) */
+        .splash-logo {
+            font-size: 5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 16px;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #0052cc 0%, #0095ff 30%, #ffffff 50%, #0095ff 70%, #0052cc 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShine 3s linear infinite, logoPulse 2.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(0, 149, 255, 0.3));
         }
 
-        #flash-menu {
-            position: absolute; top: 80px; right: 20px; 
-            background: rgba(15,15,15,0.98); border-radius: 24px;
-            display: none; flex-direction: column; border: 1px solid rgba(255,255,255,0.15);
-            z-index: 100; backdrop-filter: blur(30px);
+        /* Angka Persen - Diubah Menjadi Biru Tua Cerah */
+        .percentage-wrapper {
+            margin-bottom: 25px;
         }
-        .flash-opt { padding: 22px 35px; color: white; font-size: 12px; font-weight: 900; border-bottom: 1px solid #222; }
 
-        .shutter-outer { width: 95px; height: 95px; border: 6px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .shutter-inner { width: 75px; height: 75px; background: #fff; border-radius: 50%; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .recording .shutter-inner { background: #ff3b30; border-radius: 20px; transform: scale(0.6); }
-
-        #gallery-page {
-            position: fixed; inset: 0; background: #000; z-index: 500;
-            display: none; flex-direction: column; padding: var(--safe-top) 20px var(--safe-bottom);
+        #byfort-counter {
+            font-size: 3.8rem;
+            font-weight: 900;
+            color: #0095ff; /* Biru Tua Cerah */
+            font-family: 'Segoe UI', sans-serif;
+            letter-spacing: -1px;
+            text-shadow: 0 0 15px rgba(0, 149, 255, 0.5);
         }
-        .grid-view { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; overflow-y: auto; }
-        .grid-item { aspect-ratio: 1/1; background: #050505; border-radius: 22px; overflow: hidden; position: relative; border: 1px solid #1a1a1a; }
 
-        #full-view {
-            position: fixed; inset: 0; background: #000; z-index: 1000;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
+        #byfort-counter span {
+            font-size: 1.8rem;
+            color: #0095ff; /* Persen Biru Tua Cerah */
+            margin-left: 3px;
         }
-        .btn-ui { flex: 1; padding: 22px; border-radius: 22px; font-weight: 900; font-size: 13px; text-align: center; }
 
-        canvas { display: none; }
+        /* Kontainer Jalur Garis Loading */
+        .progress-container {
+            width: 80%;
+            height: 7px;
+            background: rgba(0, 149, 255, 0.05);
+            border-radius: 100px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 149, 255, 0.1);
+        }
+
+        /* Garis Loading Utama - Diubah Menjadi Gradasi Biru Tua Cerah Menyala */
+        #byfort-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #0052cc, #0095ff, #38bdf8); /* Kombinasi Biru Tua Cerah */
+            box-shadow: 0 0 14px rgba(0, 149, 255, 0.8);
+            border-radius: 100px;
+            transition: width 0.1s linear;
+        }
+
+        .system-status {
+            margin-top: 25px;
+            color: #475569;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* --- CORE WEBVIEW WRAPPER --- */
+        #byfort-app-viewport {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+            overflow: hidden;
+        }
+
+        #byfort-frame-engine {
+            width: 1280px; /* Paksa Layout Desktop */
+            height: 100%;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: #ffffff;
+        }
+
+        /* --- SHIELD ALERTS --- */
+        #security-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #dc2626;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-weight: bold;
+            z-index: 100000;
+            display: none;
+            border: 1px solid #ff4444;
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
+        }
+
+        /* --- CORE ANIMATIONS --- */
+        @keyframes textShine {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        @media (max-width: 600px) {
+            .loader-pure-wrapper { width: 100%; padding: 0 20px; }
+            .splash-logo { font-size: 3.5rem; letter-spacing: 10px; }
+            .progress-container { width: 90%; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="notif"><i class="fas fa-bolt-lightning text-yellow-500"></i> <span id="notif-text">BYFORT 6080K DIAMOND</span></div>
-
-    <div class="app-container">
-        <video id="camera-view" class="ai-diamond-ultra" autoplay playsinline muted></video>
-        <canvas id="diamond-canvas"></canvas>
-
-        <div class="overlay p-8">
-            <div class="flex justify-between items-start">
-                <div>
-                    <h1 class="text-white font-black text-3xl italic tracking-tighter">BYFORT <span class="text-blue-500">6080K</span></h1>
-                    <div class="text-[10px] text-blue-400 font-bold bg-blue-900/40 px-3 py-1.5 rounded-full inline-block mt-1">ULTRA HD DIAMOND PRO</div>
-                </div>
-                <div class="relative">
-                    <button onclick="toggleFlashUI()" class="w-14 h-14 rounded-full bg-black/70 flex items-center justify-center text-white border border-white/20 shadow-2xl">
-                        <i id="f-ico" class="fas fa-bolt-slash"></i>
-                    </button>
-                    <div id="flash-menu">
-                        <div class="flash-opt" onclick="setFlashMode('on')">HIDUPKAN FLASH</div>
-                        <div class="flash-opt text-red-500" onclick="setFlashMode('off')">MATIKAN FLASH</div>
-                    </div>
-                </div>
+    <!-- 1. LUXURY LOADING SCREEN (NEON MINIMALIST) -->
+    <div id="byfort-splash">
+        <div class="loader-pure-wrapper">
+            <!-- Teks Mengkilap Keren & Profesional (Biru Tua Cerah) -->
+            <div class="splash-logo">BYFORT</div>
+            
+            <!-- Persenan Angka Warna Biru Tua Cerah -->
+            <div class="percentage-wrapper">
+                <div id="byfort-counter">0<span>%</span></div>
             </div>
 
-            <div class="flex flex-col gap-10 mb-8">
-                <div class="flex justify-center gap-16 text-white text-[12px] font-black tracking-[0.3em]">
-                    <button id="p-mode" onclick="appMode('poto')" class="text-blue-500 border-b-4 border-blue-500 pb-1">POTO</button>
-                    <button id="v-mode" onclick="appMode('video')" class="opacity-30">VIDEO</button>
-                </div>
-
-                <div class="flex justify-between items-center px-2">
-                    <div onclick="openGallery()" id="mini-p" class="w-16 h-16 rounded-2xl border-2 border-white/20 bg-gray-900 overflow-hidden flex items-center justify-center">
-                        <i class="fas fa-images text-white/10 text-2xl"></i>
-                    </div>
-
-                    <div class="shutter-outer" onclick="runCapture()">
-                        <div class="shutter-inner" id="s-btn"></div>
-                    </div>
-
-                    <button onclick="flipCamera()" class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-white text-3xl">
-                        <i class="fas fa-camera-rotate"></i>
-                    </button>
-                </div>
+            <!-- Garis Loading Warna Biru Tua Cerah -->
+            <div class="progress-container">
+                <div id="byfort-bar"></div>
             </div>
+
+            <div class="system-status" id="status-text">Mengamankan Sistem...</div>
         </div>
     </div>
 
-    <div id="gallery-page">
-        <div class="flex justify-between items-center py-10">
-            <h2 class="text-white text-3xl font-black italic">BYFORT <span class="text-blue-500">VAULT</span></h2>
-            <button onclick="closeGallery()" class="bg-white text-black px-6 py-2.5 rounded-full font-black text-[11px]">BACK</button>
-        </div>
-        <div id="v-grid" class="grid-view"></div>
+    <!-- 2. APPLIKASI VIEWPORT CORE -->
+    <div id="byfort-app-viewport">
+        <iframe 
+            id="byfort-frame-engine" 
+            src="https://byfort-agent--fimenggrup.replit.app/" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+            allowfullscreen>
+        </iframe>
     </div>
 
-    <div id="full-view">
-        <button onclick="closeFull()" class="absolute top-12 right-8 text-white text-4xl"><i class="fas fa-times-circle"></i></button>
-        <div id="f-media" class="w-full h-full flex items-center justify-center"></div>
-        <div class="flex gap-4 absolute bottom-12 w-[85%]">
-            <button onclick="delItem()" class="btn-ui bg-red-600/20 text-red-500 border border-red-600/40">HAPUS</button>
-            <a id="dl-btn" class="btn-ui bg-blue-600 text-white">UNDUH 6080K</a>
-        </div>
-    </div>
+    <div id="security-alert">BYFORT SHIELD: Akses Tidak Sah Diblokir!</div>
 
     <script>
-        let stream, recorder, chunks = [], media = [], isFront = false, flash = 'off', currentMode = 'poto', activeId = null;
-        const video = document.getElementById('camera-view');
-        const canvas = document.getElementById('diamond-canvas');
-        const shutterSfx = new Audio('https://www.soundjay.com/mechanical/camera-shutter-click-08.mp3');
+        /* ==========================================================================
+           DESKTOP LAYOUT AUTOMATION (FULL PENUH & STABIL)
+           ========================================================================== */
+        const viewport = document.getElementById('byfort-app-viewport');
+        const iframe = document.getElementById('byfort-frame-engine');
+        const splash = document.getElementById('byfort-splash');
+        const counter = document.getElementById('byfort-counter');
+        const barFill = document.getElementById('byfort-bar');
+        const statusText = document.getElementById('status-text');
 
-        async function init() {
-            if (stream) stream.getTracks().forEach(t => t.stop());
+        function forceDesktopLayout() {
+            const winW = window.innerWidth;
+            const winH = window.innerHeight;
+            const scale = winW / 1280;
             
-            // Logika Mirroring Kamera Depan (Kanan ke Kiri)
-            if (isFront) video.classList.add('mirror-mode');
-            else video.classList.remove('mirror-mode');
-
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: isFront ? "user" : "environment", width: 6080, height: 3420 },
-                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-                });
-                video.srcObject = stream;
-                // Tetapkan status flash saat pindah kamera
-                if(flash === 'on') setHardwareTorch(true);
-            } catch (err) { alert("Izinkan akses kamera BYFORT."); }
+            iframe.style.width = "1280px";
+            iframe.style.height = (winH / scale) + "px";
+            iframe.style.transform = `scale(${scale})`;
+            iframe.style.transformOrigin = "top left";
         }
 
-        async function setHardwareTorch(state) {
-            try {
-                const track = stream.getVideoTracks()[0];
-                const caps = track.getCapabilities();
-                if (caps.torch) await track.applyConstraints({ advanced: [{ torch: state }] });
-            } catch (e) { console.log("Hardware Flash tidak merespon."); }
-        }
+        window.addEventListener('resize', forceDesktopLayout);
+        window.addEventListener('orientationchange', forceDesktopLayout);
+        forceDesktopLayout();
 
-        function setFlashMode(val) {
-            flash = val;
-            document.getElementById('f-ico').className = val === 'on' ? 'fas fa-bolt text-yellow-500' : 'fas fa-bolt-slash';
-            document.getElementById('flash-menu').style.display = 'none';
-            setHardwareTorch(val === 'on');
-            triggerNotif(val === 'on' ? "FLASH HIDUP" : "FLASH MATI");
-        }
+        /* ==========================================================================
+           EXACT 2.5 SECONDS REAL-TIME LOADING CONTROLLER
+           ========================================================================== */
+        const statusMessages = [
+            "Membangun Jalur Enkripsi...",
+            "Mengaktifkan Firewall Berlapis...",
+            "Sinkronisasi Antarmuka Desktop...",
+            "Sistem Siap Aman 100%"
+        ];
 
-        function toggleFlashUI() {
-            const m = document.getElementById('flash-menu');
-            m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
-        }
+        window.addEventListener('DOMContentLoaded', () => {
+            let progress = 0;
+            const totalDuration = 2500; // Tepat 2,5 Detik
+            const intervalStep = 20; 
+            const increment = 100 / (totalDuration / intervalStep);
 
-        function triggerNotif(msg) {
-            const n = document.getElementById('notif');
-            document.getElementById('notif-text').innerText = msg;
-            n.style.top = '40px';
-            setTimeout(() => n.style.top = '-100px', 3000);
-        }
+            const timer = setInterval(() => {
+                progress += increment;
+                
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(timer);
+                    
+                    setTimeout(() => {
+                        splash.style.opacity = '0';
+                        viewport.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            viewport.style.opacity = '1';
+                            splash.style.display = 'none';
+                            forceDesktopLayout();
+                        }, 100);
+                    }, 200);
+                }
 
-        function appMode(m) {
-            currentMode = m;
-            document.getElementById('p-mode').className = m === 'poto' ? 'text-blue-500 border-b-4 border-blue-500 pb-1' : 'opacity-30';
-            document.getElementById('v-mode').className = m === 'video' ? 'text-blue-500 border-b-4 border-blue-500 pb-1' : 'opacity-30';
-            document.getElementById('s-btn').style.background = m === 'poto' ? '#fff' : '#ff3b30';
-        }
+                // Inject data real-time ke UI
+                counter.innerHTML = Math.floor(progress) + "<span>%</span>";
+                barFill.style.width = progress + "%";
 
-        async function runCapture() {
-            if (currentMode === 'poto') {
-                shutterSfx.play();
-                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-                const ctx = canvas.getContext('2d');
-                if (isFront) { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
-                ctx.filter = "brightness(1.2) contrast(1.1) saturate(1.1) blur(0.2px)";
-                ctx.drawImage(video, 0, 0);
-                saveMedia(canvas.toDataURL('image/jpeg', 1.0), 'image');
-                video.style.opacity = "0.3";
-                setTimeout(() => video.style.opacity = "1", 150);
-                triggerNotif("POTO DIAMOND DISIMPAN");
-            } else {
-                handleRecord();
-            }
-        }
+                if (progress > 75) statusText.innerText = statusMessages[3];
+                else if (progress > 50) statusText.innerText = statusMessages[2];
+                else if (progress > 25) statusText.innerText = statusMessages[1];
+            }, intervalStep);
+        });
 
-        function handleRecord() {
-            const s = document.querySelector('.shutter-outer');
-            if (recorder && recorder.state === "recording") {
-                recorder.stop();
-                s.classList.remove('recording');
-            } else {
-                chunks = [];
-                recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', bitsPerSecond: 12000000 });
-                recorder.ondataavailable = e => chunks.push(e.data);
-                recorder.onstop = () => {
-                    const url = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
-                    saveMedia(url, 'video');
-                    triggerNotif("VIDEO DIAMOND DISIMPAN");
-                };
-                recorder.start();
-                s.classList.add('recording');
-            }
-        }
+        /* ==========================================================================
+           24-HOUR CYBER REACTION SHIELD & GESTURE LOCK
+           ========================================================================== */
+        document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+        let lastTouchTime = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchTime <= 300) e.preventDefault();
+            lastTouchTime = now;
+        }, { passive: false });
 
-        function saveMedia(url, type) {
-            const id = Date.now();
-            media.unshift({ id, url, type });
-            document.getElementById('mini-p').innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
-            syncGallery();
-        }
+        (function runShield() {
+            const block = () => {
+                document.getElementById('security-alert').style.display = 'block';
+                document.body.innerHTML = '<div style="background:#01040a;color:#ef4444;height:100vh;display:flex;justify-content:center;align-items:center;font-family:sans-serif;text-align:center;"><h1>BYFORT SHIELD: TERMINAL / BOT ACCESS DENIED</h1></div>';
+            };
 
-        function syncGallery() {
-            const g = document.getElementById('v-grid');
-            g.innerHTML = media.map(m => `
-                <div class="grid-item shadow-2xl" onclick="openFull(${m.id})">
-                    ${m.type === 'image' ? `<img src="${m.url}" class="w-full h-full object-cover">` : `<video src="${m.url}" class="w-full h-full object-cover"></video><div class="absolute inset-0 flex items-center justify-center"><i class="fas fa-play text-white text-3xl opacity-60"></i></div>`}
-                </div>
-            `).join('');
-        }
-
-        function openFull(id) {
-            activeId = id;
-            const item = media.find(x => x.id === id);
-            const content = document.getElementById('f-media');
-            const dl = document.getElementById('dl-btn');
-            content.innerHTML = item.type === 'image' ? `<img src="${item.url}" class="max-w-full max-h-full">` : `<video src="${item.url}" controls autoplay class="max-w-full max-h-full"></video>`;
-            dl.href = item.url;
-            dl.download = `BYFORT_6080K_${id}.${item.type === 'image' ? 'jpg' : 'webm'}`;
-            document.getElementById('full-view').style.display = 'flex';
-        }
-
-        function delItem() {
-            if(confirm("Hapus Item?")) {
-                media = media.filter(x => x.id !== activeId);
-                syncGallery();
-                closeFull();
-                if(media.length > 0) document.getElementById('mini-p').innerHTML = `<img src="${media[0].url}" class="w-full h-full object-cover">`;
-                else document.getElementById('mini-p').innerHTML = `<i class="fas fa-images text-white/10 text-2xl"></i>`;
-                triggerNotif("ITEM DIHAPUS");
-            }
-        }
-
-        function flipCamera() { isFront = !isFront; init(); }
-        function openGallery() { document.getElementById('gallery-page').style.display = 'flex'; }
-        function closeGallery() { document.getElementById('gallery-page').style.display = 'none'; }
-        function closeFull() { document.getElementById('full-view').style.display = 'none'; }
-
-        window.onload = init;
+            if (/bot|crawler|spider|headless|puppeteer|selenium|chatgpt|gemini/i.test(navigator.userAgent)) block();
+            document.addEventListener('contextmenu', (e) => e.preventDefault());
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'U')) {
+                    e.preventDefault();
+                    block();
+                }
+            });
+            setInterval(() => {
+                if (window.outerWidth - window.innerWidth > 160 || window.outerHeight - window.innerHeight > 160) block();
+            }, 500);
+        })();
     </script>
 </body>
 </html>
